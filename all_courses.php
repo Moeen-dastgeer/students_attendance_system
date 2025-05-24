@@ -1,6 +1,8 @@
-<?php include 'admin_header.php'; ?>
-<?php
+<?php include 'superadmin_header.php'; 
 include 'db.php';
+include 'superadmin_sidebar.php';
+?>
+<?php
 $courses = $conn->query("SELECT * FROM courses ORDER BY id DESC");
 ?>
 
@@ -39,4 +41,4 @@ $courses = $conn->query("SELECT * FROM courses ORDER BY id DESC");
   </div>
 </div>
 
-<?php include 'admin_footer.php'; ?>
+<?php include 'superadmin_footer.php'; ?>

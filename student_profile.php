@@ -1,10 +1,8 @@
 <?php
 include 'admin_header.php';
 include 'db.php';
-if (!isset($_SESSION['loggedin']) || $_SESSION['role'] != 'admin') {
-    header('Location:index.php');
-    exit;
-}
+
+
 
 if (!isset($_GET['id'])) {
     echo "Student ID not provided.";
@@ -12,19 +10,28 @@ if (!isset($_GET['id'])) {
 }
 
 $id = $_GET['id'];
+$campus_id = $_SESSION['campus_id'] ?? null;
+
+// Build query with optional campus filter
 $sql = "SELECT s.*, c.course_name, sh.shift_name 
         FROM students s
         LEFT JOIN courses c ON s.course_id = c.id
         LEFT JOIN shifts sh ON s.shift_id = sh.id
         WHERE s.id = $id";
+
+if ($campus_id) {
+    $sql .= " AND s.campus_id = $campus_id";
+}
+
 $result = $conn->query($sql);
 $student = $result->fetch_assoc();
 
 if (!$student) {
-    echo "Student not found.";
+    echo "Student not found or unauthorized access.";
     exit;
 }
 
+// Attendance summary
 $summary = ['present' => 0, 'absent' => 0, 'late' => 0, 'leave' => 0];
 $start = $_GET['start_date'] ?? '';
 $end = $_GET['end_date'] ?? '';
@@ -48,7 +55,18 @@ $att = $conn->query($query);
         </div>
         <div class="col-md-9">
           <p><strong>Name:</strong> <?= $student['name']; ?></p>
-          <p><strong>Roll Number:</strong> <?= $student['roll']; ?></p>
+          <p><strong>CNIC/B-Form:</strong> <?= $student['cnic'] ?: '-' ?></p>
+          <p><strong>Gender:</strong> <?= ucfirst($student['gender']); ?></p>
+          <p><strong>Marital Status:</strong> <?= ucfirst($student['marital_status']); ?></p>
+          <p><strong>Guardian Name:</strong> <?= $student['guardian_name']; ?></p>
+          <p><strong>Guardian Phone:</strong> <?= $student['guardian_phone']; ?></p>
+          <p><strong>Student Phone:</strong> <?= $student['student_phone']; ?></p>
+          <p><strong>Address:</strong> <?= $student['address']; ?></p>
+          <p><strong>Education:</strong> <?= $student['education']; ?></p>
+          <p><strong>Date of Birth:</strong> <?= $student['dob']; ?></p>
+          <p><strong>Admission Date:</strong> <?= $student['admission_date']; ?></p>
+          <p><strong>Session:</strong> <?= $student['session_start']; ?> to <?= $student['session_end']; ?></p>
+          <p><strong>Status:</strong> <span class="badge bg-<?= $student['status'] === 'active' ? 'success' : ($student['status'] === 'passout' ? 'primary' : 'secondary') ?>"><?= ucfirst($student['status']) ?></span></p>
           <p><strong>Course:</strong> <?= $student['course_name']; ?></p>
           <p><strong>Shift:</strong> <?= $student['shift_name']; ?></p>
         </div>
@@ -111,11 +129,11 @@ $att = $conn->query($query);
           new Chart(ctx, {
             type: 'bar',
             data: {
-              labels: ['Present', 'Absent', 'Late'],
+              labels: ['Present', 'Absent', 'Late', 'Leave'],
               datasets: [{
                 label: 'Attendance Count',
-                data: [<?= $summary['present']; ?>, <?= $summary['absent']; ?>, <?= $summary['late']; ?>،<?= $summary['leave']; ?>],
-                backgroundColor: ['#198754', '#dc3545', '#fd7e14']
+                data: [<?= $summary['present']; ?>, <?= $summary['absent']; ?>, <?= $summary['late']; ?>, <?= $summary['leave']; ?>],
+                backgroundColor: ['#198754', '#dc3545', '#fd7e14', '#0dcaf0']
               }]
             },
             options: {

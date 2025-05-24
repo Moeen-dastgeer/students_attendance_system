@@ -3,6 +3,7 @@
 include 'db.php';
 
 $assigned_combos = explode(',', $_SESSION['assigned_class']); // ["1-2", "2-1"]
+$campus_id = $_SESSION['campus_id'] ?? null;
 $options = [];
 
 // Prepare dropdown options
@@ -19,11 +20,19 @@ $students = [];
 if ($selected) {
     [$course_id, $shift_id] = explode('-', $selected);
     if (in_array("$course_id-$shift_id", $assigned_combos)) {
-        $students = $conn->query("SELECT s.*, c.course_name, sh.shift_name 
-            FROM students s 
-            JOIN courses c ON s.course_id = c.id 
-            JOIN shifts sh ON s.shift_id = sh.id 
-            WHERE s.course_id = $course_id AND s.shift_id = $shift_id");
+        $sql = "SELECT s.*, c.course_name, sh.shift_name 
+                FROM students s 
+                JOIN courses c ON s.course_id = c.id 
+                JOIN shifts sh ON s.shift_id = sh.id 
+                WHERE s.course_id = $course_id 
+                  AND s.shift_id = $shift_id 
+                  AND s.status = 'active'";
+
+        if ($campus_id) {
+            $sql .= " AND s.campus_id = $campus_id";
+        }
+
+        $students = $conn->query($sql);
     }
 }
 ?>
@@ -53,7 +62,6 @@ if ($selected) {
           <thead class="table-dark">
             <tr>
               <th>Name</th>
-              <th>Roll No</th>
               <th>Course</th>
               <th>Shift</th>
               <th>Profile</th>
@@ -63,7 +71,6 @@ if ($selected) {
             <?php while($s = $students->fetch_assoc()): ?>
               <tr>
                 <td><?= $s['name']; ?></td>
-                <td><?= $s['roll']; ?></td>
                 <td><?= $s['course_name']; ?></td>
                 <td><?= $s['shift_name']; ?></td>
                 <td><a href="student_profile_teacher.php?id=<?= $s['id']; ?>" class="btn btn-sm btn-primary">👁️ View</a></td>

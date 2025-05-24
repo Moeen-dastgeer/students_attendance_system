@@ -1,17 +1,19 @@
-<?php
-include 'admin_header.php'; 
-include 'db.php';
-if (!isset($_SESSION['loggedin']) || $_SESSION['role'] != 'admin') {
+<?php include 'admin_header.php'; ?>
+<?php include 'db.php';
+if (!isset($_SESSION['loggedin']) || $_SESSION['role'] !== 'admin') {
     header('Location:index.php');
     exit;
 }
-?>
 
+$campus_id = $_SESSION['campus_id'];
+?>
 
 <div class="container py-4">
   <div class="card shadow-sm">
     <div class="card-body">
-      <h3 class="card-title mb-4">📊 Attendance Summary (Present / Absent / Late)</h3>
+      <div class="mb-5">
+        <h3 class="card-title">📊 Attendance Summary (Present / Absent / Late / Leave)</h3>
+      </div>
 
       <!-- Filter Form -->
       <form method="GET" class="row g-2 align-items-end mb-3">
@@ -24,14 +26,27 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['role'] != 'admin') {
           <input type="date" name="end_date" class="form-control" required value="<?= $_GET['end_date'] ?? '' ?>">
         </div>
         <div class="col-md-3">
-          <label class="form-label">Class:</label>
-          <select name="class" class="form-select">
-            <option value="all">All Classes</option>
+          <label class="form-label">Course:</label>
+          <select name="course_id" class="form-select">
+            <option value="">All Courses</option>
             <?php
-            $classes = $conn->query("SELECT DISTINCT class FROM students");
-            while ($c = $classes->fetch_assoc()) {
-              $selected = ($_GET['class'] ?? '') == $c['class'] ? 'selected' : '';
-              echo "<option value='{$c['class']}' $selected>{$c['class']}</option>";
+            $courses = $conn->query("SELECT * FROM courses ORDER BY course_name");
+            while ($c = $courses->fetch_assoc()) {
+              $sel = ($_GET['course_id'] ?? '') == $c['id'] ? 'selected' : '';
+              echo "<option value='{$c['id']}' $sel>{$c['course_name']}</option>";
+            }
+            ?>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Shift:</label>
+          <select name="shift_id" class="form-select">
+            <option value="">All Shifts</option>
+            <?php
+            $shifts = $conn->query("SELECT * FROM shifts ORDER BY shift_name");
+            while ($s = $shifts->fetch_assoc()) {
+              $sel = ($_GET['shift_id'] ?? '') == $s['id'] ? 'selected' : '';
+              echo "<option value='{$s['id']}' $sel>{$s['shift_name']}</option>";
             }
             ?>
           </select>
@@ -41,39 +56,30 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['role'] != 'admin') {
         </div>
       </form>
 
-      <?php if (isset($_GET['start_date'], $_GET['end_date'], $_GET['class'])): ?>
-        <div class="mb-3 d-flex gap-2 flex-wrap">
-          <a href="export_attendance_summary_pdf.php?start_date=<?= $_GET['start_date']; ?>&end_date=<?= $_GET['end_date']; ?>&class=<?= $_GET['class']; ?>" target="_blank" class="btn btn-outline-secondary btn-sm">🧾 Export PDF</a>
-          <a href="export_attendance_summary_excel.php?start_date=<?= $_GET['start_date']; ?>&end_date=<?= $_GET['end_date']; ?>&class=<?= $_GET['class']; ?>" class="btn btn-outline-success btn-sm">📊 Export Excel</a>
-          <button onclick="window.print()" class="btn btn-outline-primary btn-sm">🖨️ Print</button>
-        </div>
-      <?php endif; ?>
-
       <?php
-      if (isset($_GET['start_date']) && isset($_GET['end_date']) && isset($_GET['class'])) {
+      if (isset($_GET['start_date'], $_GET['end_date'])) {
           $start = $_GET['start_date'];
           $end = $_GET['end_date'];
-          $class = $_GET['class'];
+          $course_id = $_GET['course_id'] ?? '';
+          $shift_id = $_GET['shift_id'] ?? '';
 
-          echo "<h5 class='mt-3'>Showing attendance from <strong>$start</strong> to <strong>$end</strong> for class: <strong>" . ($class == 'all' ? "All" : $class) . "</strong></h5>";
+          $query = "SELECT * FROM students WHERE campus_id = $campus_id";
+          if ($course_id) $query .= " AND course_id = $course_id";
+          if ($shift_id) $query .= " AND shift_id = $shift_id";
 
-          $sql = "SELECT * FROM students";
-          if ($class !== 'all') {
-              $sql .= " WHERE class = '$class'";
-          }
-
-          $students = $conn->query($sql);
+          $students = $conn->query($query);
 
           echo "<div class='table-responsive mt-3'><table class='table table-bordered table-striped'>
                   <thead class='table-light'>
                     <tr>
                       <th>Image</th>
                       <th>Name</th>
-                      <th>Roll</th>
-                      <th>Class</th>
+                      <th>Course</th>
+                      <th>Shift</th>
                       <th>Present</th>
                       <th>Absent</th>
                       <th>Late</th>
+                      <th>Leave</th>
                     </tr>
                   </thead>
                   <tbody>";
@@ -85,29 +91,30 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['role'] != 'admin') {
 
           while ($student = $students->fetch_assoc()) {
               $sid = $student['id'];
-              $counts = ['present' => 0, 'absent' => 0, 'late' => 0];
+              $counts = ['present' => 0, 'absent' => 0, 'late' => 0, 'leave' => 0];
 
-              $att_sql = "SELECT status FROM attendance 
-                          WHERE student_id = $sid 
-                          AND date BETWEEN '$start' AND '$end'";
-              $att_result = $conn->query($att_sql);
-              while ($row = $att_result->fetch_assoc()) {
-                  $status = $row['status'];
-                  if (isset($counts[$status])) {
-                      $counts[$status]++;
+              $att = $conn->query("SELECT status FROM attendance 
+                                   WHERE student_id = $sid AND date BETWEEN '$start' AND '$end'");
+              while ($row = $att->fetch_assoc()) {
+                  if (isset($counts[$row['status']])) {
+                      $counts[$row['status']]++;
                   }
               }
 
               $img = $student['image'] ? "<img src='uploads/{$student['image']}' width='50' class='img-thumbnail'>" : "-";
 
+              $course = $conn->query("SELECT course_name FROM courses WHERE id = {$student['course_id']}")->fetch_assoc()['course_name'] ?? '-';
+              $shift = $conn->query("SELECT shift_name FROM shifts WHERE id = {$student['shift_id']}")->fetch_assoc()['shift_name'] ?? '-';
+
               echo "<tr>
                       <td>$img</td>
                       <td>{$student['name']}</td>
-                      <td>{$student['roll']}</td>
-                      <td>{$student['class']}</td>
+                      <td>$course</td>
+                      <td>$shift</td>
                       <td>{$counts['present']}</td>
                       <td>{$counts['absent']}</td>
                       <td>{$counts['late']}</td>
+                      <td>{$counts['leave']}</td>
                     </tr>";
 
               $labels[] = $student['name'];
@@ -157,7 +164,6 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['role'] != 'admin') {
           });
         </script>
       <?php endif; ?>
-
     </div>
   </div>
 </div>

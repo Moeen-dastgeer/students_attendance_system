@@ -4,7 +4,10 @@ session_start();
 include 'db.php';
 
 if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
-    if ($_SESSION['role'] === 'admin') {
+    if ($_SESSION['role'] === 'super_admin') {
+        header("Location: superadmin_dashboard.php");
+        exit;
+    } elseif ($_SESSION['role'] === 'admin') {
         header("Location: dashboard.php");
         exit;
     } elseif ($_SESSION['role'] === 'teacher') {
@@ -17,19 +20,30 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $username = $_POST['username'];
     $password = $_POST['password'];
 
-    // Check Admin
+    // Check Admins (both super & regular)
     $admin = $conn->query("SELECT * FROM admins WHERE username = '$username'");
     if ($admin->num_rows == 1) {
         $a = $admin->fetch_assoc();
         if (password_verify($password, $a['password'])) {
             $_SESSION['loggedin'] = true;
-            $_SESSION['role'] = 'admin';
-            $_SESSION['admin_name'] = $a['name'];
-            header("Location: dashboard.php");
+
+            if ($a['is_super'] == 1) {
+                $_SESSION['role'] = 'super_admin';
+                $_SESSION['super_name'] = $a['name'];
+                $_SESSION['admin_id'] = $a['id'];
+                header("Location: superadmin_dashboard.php");
+            } else {
+                $_SESSION['role'] = 'admin';
+                $_SESSION['admin_name'] = $a['name'];
+                $_SESSION['admin_id'] = $a['id'];
+                $_SESSION['campus_id'] = $a['campus_id'];
+                header("Location: dashboard.php");
+            }
             exit;
         }
     }
 
+    // Check Teachers
     $teacher = $conn->query("SELECT * FROM teachers WHERE username = '$username'");
     if ($teacher->num_rows == 1) {
         $t = $teacher->fetch_assoc();
@@ -47,6 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $error = "❌ Invalid username or password";
 }
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">

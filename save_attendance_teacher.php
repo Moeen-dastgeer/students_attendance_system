@@ -17,13 +17,17 @@ if (!in_array($status, $allowed_statuses)) {
 }
 
 // Get student info
-$student = $conn->query("SELECT course_id, shift_id FROM students WHERE id = $student_id")->fetch_assoc();
+$student = $conn->query("SELECT course_id, shift_id, status FROM students WHERE id = $student_id")->fetch_assoc();
 if (!$student) {
     exit("❌ Student not found.");
 }
 
-// Teacher's assigned combinations
-$assigned = explode(',', $_SESSION['assigned_class']); // e.g. 1-2,2-1
+if ($student['status'] !== 'active') {
+    exit("❌ Cannot mark attendance. Student is not active.");
+}
+
+// Validate teacher's assigned course-shift
+$assigned = explode(',', $_SESSION['assigned_class']); // e.g. "1-2,2-1"
 $current = $student['course_id'] . '-' . $student['shift_id'];
 
 if (!in_array(trim($current), array_map('trim', $assigned))) {

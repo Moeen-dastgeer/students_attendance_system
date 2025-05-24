@@ -2,7 +2,7 @@
 session_start();
 include 'db.php';
 
-if (!isset($_SESSION['loggedin']) || $_SESSION['role'] != 'admin') {
+if (!isset($_SESSION['loggedin']) || $_SESSION['role'] !== 'admin') {
     header('Location:index.php');
     exit;
 }
@@ -13,23 +13,37 @@ if (!isset($_GET['id'])) {
     exit;
 }
 
-$id = $_GET['id'];
+$id = intval($_GET['id']); // Security
 
-// fetch image for delete
-$result = $conn->query("SELECT image FROM students WHERE id = $id");
-$student = $result->fetch_assoc();
+// Check if student exists
+$student_q = $conn->query("SELECT image, campus_id FROM students WHERE id = $id");
+if ($student_q->num_rows === 0) {
+    $_SESSION['error'] = "❌ Student not found.";
+    header("Location: all_students.php");
+    exit;
+}
 
-if ($student && $student['image']) {
-    $path = "uploads/" . $student['image'];
-    if (file_exists($path)) {
-        unlink($path); // delete image file
+$student = $student_q->fetch_assoc();
+
+// Campus Check: only allow if admin belongs to same campus (super admin can bypass)
+if (isset($_SESSION['campus_id']) && $_SESSION['campus_id'] != $student['campus_id']) {
+    $_SESSION['error'] = "❌ You are not authorized to delete this student.";
+    header("Location: all_students.php");
+    exit;
+}
+
+// Delete image if exists
+if (!empty($student['image'])) {
+    $image_path = "uploads/" . $student['image'];
+    if (file_exists($image_path)) {
+        unlink($image_path);
     }
 }
 
-// delete related attendance
+// Delete related attendance
 $conn->query("DELETE FROM attendance WHERE student_id = $id");
 
-// delete student
+// Delete student record
 if ($conn->query("DELETE FROM students WHERE id = $id") === TRUE) {
     $_SESSION['success'] = "🗑️ Student deleted successfully!";
 } else {

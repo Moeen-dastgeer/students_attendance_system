@@ -5,6 +5,8 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['role'] != 'admin') {
     header('Location:index.php');
     exit;
 }
+
+$campus_id = $_SESSION['campus_id'] ?? null;
 ?>
 
 <div class="container py-4">
@@ -40,6 +42,8 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['role'] != 'admin') {
           </select>
         </div>
       </div>
+
+      <input type="hidden" id="campus_id" value="<?= $campus_id ?>">
 
       <div id="student_table" class="table-responsive"></div>
     </div>

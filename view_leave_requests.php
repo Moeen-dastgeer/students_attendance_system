@@ -1,10 +1,35 @@
 <?php include 'admin_header.php'; ?>
+<?php
+include 'db.php';
+
+if (!isset($_SESSION['loggedin']) || $_SESSION['role'] !== 'admin') {
+    header("Location: login.php");
+    exit;
+}
+
+$admin_campus_id = $_SESSION['campus_id'] ?? null;
+
+// Handle approval
+if (isset($_GET['approve'])) {
+    $id = intval($_GET['approve']);
+    $conn->query("UPDATE leave_requests SET status = 'approved' WHERE id = $id");
+    $_SESSION['success'] = "✅ Leave request approved.";
+    header("Location: view_leave_requests.php");
+    exit;
+}
+?>
 
 <div class="container py-4">
   <div class="card shadow-sm">
     <div class="card-body">
       <h4 class="card-title mb-4">🗂️ Leave Requests (Teachers)</h4>
 
+      <!-- Flash Messages -->
+      <?php if (isset($_SESSION['success'])): ?>
+        <div class="alert alert-success"><?= $_SESSION['success']; unset($_SESSION['success']); ?></div>
+      <?php endif; ?>
+
+      <!-- Filters -->
       <div class="row g-2 mb-3">
         <div class="col-md-3">
           <select id="filter_status" class="form-select">
@@ -28,6 +53,7 @@
         </div>
       </div>
 
+      <!-- Results -->
       <div id="leave_table">
         <!-- AJAX Results will be loaded here -->
       </div>
@@ -35,6 +61,7 @@
   </div>
 </div>
 
+<!-- Scripts -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
   function fetchLeaves() {
@@ -58,14 +85,31 @@
     });
   }
 
-  // Trigger fetch on each input change
+  function cancelRequest(id) {
+    const reason = prompt("Enter cancellation reason:");
+    if (!reason) return;
+
+    if (confirm("Are you sure you want to cancel this request?")) {
+      fetch('cancel_leave.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'id=' + id + '&reason=' + encodeURIComponent(reason)
+      })
+      .then(res => res.text())
+      .then(data => {
+        alert(data);
+        fetchLeaves(); // reload table
+      });
+    }
+  }
+
   $(document).ready(function () {
-    fetchLeaves(); // initial load
+    fetchLeaves();
 
     $('#filter_status, #from_date, #to_date').on('change', fetchLeaves);
     $('#teacher_name').on('keyup', function () {
       clearTimeout(this.delay);
-      this.delay = setTimeout(fetchLeaves, 300); // debounce
+      this.delay = setTimeout(fetchLeaves, 300);
     });
   });
 </script>

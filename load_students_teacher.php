@@ -10,7 +10,10 @@ if (!$course_id || !$shift_id) {
     exit;
 }
 
-$students = $conn->query("SELECT * FROM students WHERE course_id = $course_id AND shift_id = $shift_id");
+$students = $conn->query("SELECT * FROM students 
+                          WHERE course_id = $course_id 
+                            AND shift_id = $shift_id 
+                            AND status = 'active'");
 
 if ($students->num_rows === 0) {
     echo "<div class='alert alert-info'>ℹ️ No students found for this course and shift.</div>";
@@ -21,7 +24,6 @@ echo '<table class="table table-bordered align-middle">';
 echo '<thead class="table-dark">
         <tr>
           <th>Name</th>
-          <th>Roll</th>
           <th>Status</th>
           <th>Action</th>
         </tr>
@@ -29,6 +31,7 @@ echo '<thead class="table-dark">
 
 while ($s = $students->fetch_assoc()) {
     $id = $s['id'];
+    $name = htmlspecialchars($s['name']);
 
     // Check today's attendance
     $att = $conn->query("SELECT status FROM attendance WHERE student_id = $id AND date = '$date'");
@@ -41,11 +44,12 @@ while ($s = $students->fetch_assoc()) {
         'leave'  => 'info',
         default  => 'secondary'
     };
-    $statusBadge = $status ? "<span class='badge bg-$badgeColor text-capitalize'>$status</span>" : '';
+
+    $statusText = $status ? ucfirst($status) : '-';
+    $statusBadge = "<span class='badge bg-$badgeColor text-capitalize' id='status_$id'>$statusText</span>";
 
     echo "<tr id='row-$id'>
-            <td>{$s['name']}</td>
-            <td>{$s['roll']}</td>
+            <td>$name</td>
             <td class='status-badge'>$statusBadge</td>
             <td>
               <div class='btn-group' role='group'>

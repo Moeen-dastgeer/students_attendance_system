@@ -17,6 +17,8 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['role'] !== 'admin') {
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="print_styles.css" media="print">
+  <link rel="stylesheet" href="print_styles.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
@@ -47,13 +49,19 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['role'] !== 'admin') {
         <li class="nav-item"><a href="dashboard.php" class="nav-link"><i class="nav-icon fas fa-home"></i><p>Dashboard</p></a></li>
         <li class="nav-item"><a href="add_student.php" class="nav-link"><i class="nav-icon fas fa-user-plus"></i><p>Add Student</p></a></li>
         <li class="nav-item"><a href="all_students.php" class="nav-link"><i class="nav-icon fas fa-users"></i><p>All Students</p></a></li>
-        <li class="nav-item"><a href="all_courses.php" class="nav-link"><i class="nav-icon fas fa-users"></i><p>All Courses</p></a></li>
-        <li class="nav-item"><a href="all_shifts.php" class="nav-link"><i class="nav-icon fas fa-users"></i><p>All Shifts</p></a></li>
+        <!-- <li class="nav-item"><a href="all_courses.php" class="nav-link"><i class="nav-icon fas fa-users"></i><p>All Courses</p></a></li>
+        <li class="nav-item"><a href="all_shifts.php" class="nav-link"><i class="nav-icon fas fa-users"></i><p>All Shifts</p></a></li> -->
         <li class="nav-item"><a href="add_teacher.php" class="nav-link"><i class="nav-icon fas fa-user-tie"></i><p>Add Teacher</p></a></li>
         <li class="nav-item"><a href="all_teachers.php" class="nav-link"><i class="nav-icon fas fa-users-cog"></i><p>Manage Teachers</p></a></li>
         <li class="nav-item"><a href="view_leave_requests.php" class="nav-link"> <i class="nav-icon fas fa-file-alt"></i><p>Manage Leaves</p></a></li>
         <li class="nav-item"><a href="take_attendance.php" class="nav-link"><i class="nav-icon fas fa-edit"></i><p>Take Attendance</p></a></li>
         <li class="nav-item"><a href="view_attendance_filtered.php" class="nav-link"><i class="nav-icon fas fa-calendar-alt"></i><p>View Attendance</p></a></li>
+        <li class="nav-item">
+          <a href="generate_idcards.php" class="nav-link">
+            <i class="nav-icon fas fa-id-card"></i>
+            <p>Generate ID Cards</p>
+          </a>
+        </li>
         <li class="nav-item">
           <a href="admin_change_password.php" class="nav-link">
             <i class="nav-icon fas fa-key"></i>

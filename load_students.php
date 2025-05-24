@@ -1,16 +1,26 @@
 <?php
 include 'db.php';
+session_start();
 
 $course_id = $_GET['course_id'] ?? '';
 $shift_id = $_GET['shift_id'] ?? '';
 $date = date('Y-m-d');
+
+// Get admin's campus_id if not super admin
+$campus_id = $_SESSION['campus_id'] ?? null;
 
 if (!$course_id || !$shift_id) {
     echo "<div class='alert alert-warning'>⚠️ Please select course and shift.</div>";
     exit;
 }
 
-$students = $conn->query("SELECT * FROM students WHERE course_id = $course_id AND shift_id = $shift_id");
+// Build query
+$query = "SELECT * FROM students WHERE course_id = $course_id AND shift_id = $shift_id";
+if ($campus_id) {
+    $query .= " AND campus_id = $campus_id";
+}
+
+$students = $conn->query($query);
 
 if ($students->num_rows == 0) {
     echo "<div class='alert alert-info'>ℹ️ No students found for selected course and shift.</div>";
@@ -22,7 +32,6 @@ echo '<thead class="table-light">
         <tr>
           <th>Image</th>
           <th>Name</th>
-          <th>Roll</th>
           <th>Status</th>
           <th>Mark</th>
         </tr>
@@ -35,20 +44,19 @@ while ($s = $students->fetch_assoc()) {
     // Get today's status
     $att = $conn->query("SELECT status FROM attendance WHERE student_id = $id AND date = '$date'");
     $status = $att->num_rows > 0 ? $att->fetch_assoc()['status'] : '';
-    
+
     $badgeClass = match ($status) {
         'present' => 'bg-success',
-        'absent' => 'bg-danger',
-        'late'   => 'bg-warning text-dark',
-        'leave'  => 'bg-info',
-        default  => 'bg-secondary'
+        'absent'  => 'bg-danger',
+        'late'    => 'bg-warning text-dark',
+        'leave'   => 'bg-info',
+        default   => 'bg-secondary'
     };
     $statusText = $status ? ucfirst($status) : '-';
 
     echo "<tr id='row-$id'>
             <td>$img</td>
             <td>{$s['name']}</td>
-            <td>{$s['roll']}</td>
             <td><span id='status_{$id}' class='badge $badgeClass'>$statusText</span></td>
             <td>
               <button class='btn btn-success btn-sm' onclick=\"setAttendance($id, 'present')\">✅ Present</button>

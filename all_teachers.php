@@ -64,6 +64,7 @@ while ($s = $shifts->fetch_assoc()) {
                 ?>
               </td>
               <td>
+                <a href="teacher_profile.php?id=<?= $t['id']; ?>" class="btn btn-sm btn-info">👁️ View</a>
                 <a href="edit_teacher.php?id=<?= $t['id']; ?>" class="btn btn-sm btn-warning">✏️ Edit</a>
                 <a href="delete_teacher.php?id=<?= $t['id']; ?>" onclick="return confirm('Are you sure to delete?')" class="btn btn-sm btn-danger">🗑️ Delete</a>
               </td>

@@ -7,11 +7,10 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['role'] !== 'teacher') {
 }
 
 $today = date('Y-m-d');
-$assigned_combos = explode(',', $_SESSION['assigned_class']); // format: "1-2,2-1"
+$campus_id = $_SESSION['campus_id'] ?? null;
+$assigned_combos = explode(',', $_SESSION['assigned_class']);
 $total_students = 0;
 $summary = ['present' => 0, 'absent' => 0, 'late' => 0];
-
-// To show course/shift labels
 $combo_labels = [];
 
 foreach ($assigned_combos as $combo) {
@@ -23,20 +22,30 @@ foreach ($assigned_combos as $combo) {
                           WHERE c.id = $course_id AND s.id = $shift_id")->fetch_assoc();
     $label = $meta ? $meta['course_name'] . ' - ' . $meta['shift_name'] : 'Unknown';
 
+    // Build student filter
+    $student_filter = "course_id = $course_id AND shift_id = $shift_id AND status = 'active'";
+    if ($campus_id) $student_filter .= " AND campus_id = $campus_id";
+
     // Count students
-    $count = $conn->query("SELECT COUNT(*) as total FROM students 
-                          WHERE course_id = $course_id AND shift_id = $shift_id")
-                          ->fetch_assoc()['total'];
+    $count = $conn->query("SELECT COUNT(*) as total FROM students WHERE $student_filter")->fetch_assoc()['total'];
     $total_students += $count;
     $combo_labels[] = ['label' => $label, 'count' => $count];
 
-    // Attendance today
-    $att = $conn->query("SELECT a.status, COUNT(*) as count FROM attendance a
-                        JOIN students s ON a.student_id = s.id
-                        WHERE s.course_id = $course_id AND s.shift_id = $shift_id AND a.date = '$today'
-                        GROUP BY a.status");
-    while ($row = $att->fetch_assoc()) {
-        $summary[$row['status']] += $row['count'];
+    // Attendance summary
+    $student_ids = $conn->query("SELECT id FROM students WHERE $student_filter");
+    $ids = [];
+    while ($sid = $student_ids->fetch_assoc()) {
+        $ids[] = $sid['id'];
+    }
+
+    if (count($ids)) {
+        $id_list = implode(',', $ids);
+        $att = $conn->query("SELECT status, COUNT(*) as count FROM attendance 
+                             WHERE date = '$today' AND student_id IN ($id_list) 
+                             GROUP BY status");
+        while ($row = $att->fetch_assoc()) {
+            $summary[$row['status']] += $row['count'];
+        }
     }
 }
 ?>

@@ -34,14 +34,27 @@ $att = $conn->query("SELECT date, status FROM attendance WHERE student_id = $id 
 
 <div class="card shadow-sm">
   <div class="card-body">
-    <h3 class="card-title mb-3">👤 Student Profile</h3>
+    <h3 class="card-title mb-4">👤 Student Profile</h3>
 
-    <div class="mb-3">
-      <?= $image ?><br><br>
-      <p><strong>Name:</strong> <?= $student['name']; ?></p>
-      <p><strong>Roll No:</strong> <?= $student['roll']; ?></p>
-      <p><strong>Course:</strong> <?= $student['course_name']; ?></p>
-      <p><strong>Shift:</strong> <?= $student['shift_name']; ?></p>
+    <div class="row mb-4">
+      <div class="col-md-3"><?= $image ?></div>
+      <div class="col-md-9">
+        <p><strong>Name:</strong> <?= $student['name']; ?></p>
+        <!-- <p><strong>Roll No:</strong> <?= $student['roll'] ?? '-'; ?></p> -->
+        <p><strong>Course:</strong> <?= $student['course_name']; ?></p>
+        <p><strong>Shift:</strong> <?= $student['shift_name']; ?></p>
+        <p><strong>CNIC / B-Form:</strong> <?= $student['cnic'] ?? '-'; ?></p>
+        <p><strong>Gender:</strong> <?= $student['gender'] ?? '-'; ?></p>
+        <p><strong>Marital Status:</strong> <?= $student['marital_status'] ?? '-'; ?></p>
+        <p><strong>Guardian Name:</strong> <?= $student['guardian_name'] ?? '-'; ?></p>
+        <p><strong>Guardian Phone:</strong> <?= $student['guardian_phone'] ?? '-'; ?></p>
+        <p><strong>Student Phone:</strong> <?= $student['student_phone'] ?? '-'; ?></p>
+        <p><strong>Address:</strong> <?= $student['address'] ?? '-'; ?></p>
+        <p><strong>Education:</strong> <?= $student['education'] ?? '-'; ?></p>
+        <p><strong>Date of Birth:</strong> <?= $student['dob'] ?? '-'; ?></p>
+        <p><strong>Admission Date:</strong> <?= $student['admission_date'] ?? '-'; ?></p>
+        <p><strong>Session:</strong> <?= $student['session_start'] . ' to ' . $student['session_end']; ?></p>
+      </div>
     </div>
 
     <h5>📅 Attendance History:</h5>
@@ -64,7 +77,7 @@ $att = $conn->query("SELECT date, status FROM attendance WHERE student_id = $id 
       </table>
     </div>
 
-    <a href="students_teacher.php" class="btn btn-secondary mt-3">← Back to Students</a>
+    <a href="students_teacher.php" class="btn btn-secondary mt-4">← Back to Students</a>
   </div>
 </div>
 

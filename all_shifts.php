@@ -1,6 +1,8 @@
-<?php include 'admin_header.php'; ?>
-<?php
+<?php include 'superadmin_header.php'; 
 include 'db.php';
+include 'superadmin_sidebar.php';
+?>
+<?php
 $shifts = $conn->query("SELECT * FROM shifts ORDER BY id DESC");
 ?>
 
@@ -43,4 +45,4 @@ $shifts = $conn->query("SELECT * FROM shifts ORDER BY id DESC");
   </div>
 </div>
 
-<?php include 'admin_footer.php'; ?>
+<?php include 'superadmin_footer.php'; ?>

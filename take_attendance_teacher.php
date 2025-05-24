@@ -2,13 +2,13 @@
 <?php
 include 'db.php';
 
-// Extract assigned combos from session
-$assigned_combos = explode(',', $_SESSION['assigned_class']); // e.g. ["1-2", "2-1"]
-$today = date('Y-m-d');
+if (!isset($_SESSION['loggedin']) || $_SESSION['role'] !== 'teacher') {
+    header("Location: login.php");
+    exit;
+}
 
-// Prepare course & shift info for dropdown
-$courses = $conn->query("SELECT * FROM courses");
-$shifts = $conn->query("SELECT * FROM shifts");
+$assigned_combos = explode(',', $_SESSION['assigned_class']); // e.g. 1-2,2-1
+$today = date('Y-m-d');
 
 $combo_options = [];
 foreach ($assigned_combos as $combo) {

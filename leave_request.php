@@ -9,7 +9,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $to = $_POST['to_date'];
     $reason = $_POST['reason'];
 
-    $conn->query("INSERT INTO leave_requests (teacher_id, from_date, to_date, reason) VALUES ($teacher_id, '$from', '$to', '$reason')");
+    $conn->query("INSERT INTO leave_requests (teacher_id, from_date, to_date, reason,status) VALUES ($teacher_id, '$from', '$to', '$reason','pending')");
     $msg = "✅ Leave request submitted successfully.";
 }
 ?>
@@ -39,22 +39,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
       <hr>
       <h5 class="mt-4">📋 My Leave Requests</h5>
-      <table class="table table-bordered table-striped">
-        <thead><tr><th>From</th><th>To</th><th>Reason</th><th>Status</th></tr></thead>
-        <tbody>
-        <?php
-        $res = $conn->query("SELECT * FROM leave_requests WHERE teacher_id = $teacher_id ORDER BY id DESC");
-        while($row = $res->fetch_assoc()) {
-          $status = $row['status'] == 'approved' ? '✅ Approved' : '⏳ Pending';
-          echo "<tr>
-                  <td>{$row['from_date']}</td>
-                  <td>{$row['to_date']}</td>
-                  <td>{$row['reason']}</td>
-                  <td>$status</td>
-                </tr>";
-        }
-        ?>
-        </tbody>
+<table class="table table-bordered table-striped">
+  <thead>
+    <tr><th>From</th><th>To</th><th>Reason</th><th>Status</th></tr>
+  </thead>
+  <tbody>
+    <?php
+    $res = $conn->query("SELECT * FROM leave_requests WHERE teacher_id = $teacher_id ORDER BY id DESC");
+    while($row = $res->fetch_assoc()) {
+      $status_html = '';
+
+      if ($row['status'] === 'approved') {
+        $status_html = '<span class="badge bg-success">✅ Approved</span>';
+      } elseif ($row['status'] === 'cancelled') {
+        $cancel_reason = htmlspecialchars($row['cancel_reason']);
+        $status_html = "<span class='badge bg-danger'>❌ Cancelled</span><br><small><strong>Reason:</strong> $cancel_reason</small>";
+      } else {
+        $status_html = '<span class="badge bg-warning text-dark">⏳ Pending</span>';
+      }
+
+      echo "<tr>
+              <td>{$row['from_date']}</td>
+              <td>{$row['to_date']}</td>
+              <td>{$row['reason']}</td>
+              <td>$status_html</td>
+            </tr>";
+    }
+    ?>
+  </tbody>
+</table>
       </table>
     </div>
   </div>

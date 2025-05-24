@@ -15,8 +15,57 @@
         </div>
 
         <div class="mb-3">
-          <label class="form-label">Roll Number</label>
-          <input type="text" name="roll" class="form-control" required>
+          <label class="form-label">CNIC / B-Form</label>
+          <input type="text" name="cnic" class="form-control">
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Gender</label>
+          <select name="gender" class="form-select">
+            <option value="">-- Select --</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Marital Status</label>
+          <select name="marital_status" class="form-select">
+            <option value="">-- Select --</option>
+            <option value="Single">Single</option>
+            <option value="Married">Married</option>
+          </select>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Guardian Name</label>
+          <input type="text" name="guardian_name" class="form-control">
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Guardian Phone</label>
+          <input type="text" name="guardian_phone" class="form-control">
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Student Phone</label>
+          <input type="text" name="student_phone" class="form-control">
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Address</label>
+          <textarea name="address" class="form-control" rows="2"></textarea>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Education</label>
+          <input type="text" name="education" class="form-control">
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Date of Birth</label>
+          <input type="date" name="dob" class="form-control">
         </div>
 
         <div class="mb-3">
@@ -45,7 +94,6 @@
           </select>
         </div>
 
-        <!-- 🎓 Session & Admission Fields -->
         <div class="mb-3">
           <label class="form-label">Admission Date</label>
           <input type="date" name="admission_date" class="form-control" value="<?= date('Y-m-d') ?>" required>

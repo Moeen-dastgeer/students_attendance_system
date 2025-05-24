@@ -1,4 +1,5 @@
-<?php include 'admin_header.php'; ?>
+<?php include 'superadmin_header.php'; ?>
+<?php include 'superadmin_sidebar.php'; ?>
 <?php
 include 'db.php';
 
@@ -39,4 +40,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   </form>
 </div>
 
-<?php include 'admin_footer.php'; ?>
+<?php include 'superadmin_footer.php'; ?>
